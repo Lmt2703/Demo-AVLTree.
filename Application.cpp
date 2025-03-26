@@ -172,7 +172,7 @@ void Application::HandleOperation() {
             }
         }
         else if (selectedOption == "Search") {
-            ShowStatus(tree.Search(value) ? "Number found" : "Number not found", tree.Search(value) ? GREEN : ORANGE);
+            ShowStatus(tree.Search(value) ? "Number " + std::to_string(value)+" found" : "Number "+ std::to_string(value)+" not found", tree.Search(value) ? GREEN : ORANGE);
         }
     }
     catch (...) {
