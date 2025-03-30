@@ -1,4 +1,4 @@
-#include "Node.h"
+﻿#include "Node.h"
 
 Node::Node(int key) : key(key), height(1), left(nullptr), right(nullptr), position({ 0, 0 }) {}
 
@@ -8,14 +8,15 @@ int Node::GetBalanceFactor() {
     return leftHeight - rightHeight;
 }
 
-void Node::DrawNode() {
-    int radius = 40;
-    DrawCircle(position.x, position.y, radius, SKYBLUE);
+void Node::DrawNode(Color color) {
+
+    int radius = 30;
+    DrawCircle(position.x, position.y, radius, color);
     DrawCircleLines(position.x, position.y, radius, DARKBLUE);
-    DrawText(std::to_string(key).c_str(), position.x - 12, position.y - 12, 22, WHITE);
+    DrawText(std::to_string(key).c_str(), position.x - 12, position.y - 12, 22, BLACK);
 
     std::string balanceStr = "bf:" + std::to_string(GetBalanceFactor());
-    DrawText(balanceStr.c_str(), position.x - 15, position.y + 20, 16, RED);
+    DrawText(balanceStr.c_str(), position.x - 15, position.y + 10, 16, RED);
 }
 
 void adjustNodePositions(Node* root, int level, int index, int totalNodesAtLevel, float screenWidth, float screenHeight) {

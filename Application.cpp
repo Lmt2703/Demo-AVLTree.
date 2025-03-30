@@ -42,6 +42,7 @@ void Application::ShowStatus(const std::string& message, Color color) {
 }
 
 void Application::Update() {
+   
     Vector2 mousePos = GetMousePosition();
     animationProgress += 0.02f;
     if (animationProgress > 1.0f)
@@ -57,8 +58,11 @@ void Application::Update() {
     }
 
     if (startButton.IsClicked(mousePos)) {
-        if (selectedOption == "Init") {
+        if (selectedOption == "Init")
+        {
+            tree.isInitializing = true;
             HandleInit();
+            tree.isInitializing = false;
         }
         else {
             HandleOperation();
@@ -140,7 +144,8 @@ void Application::HandleInit() {
         ShowStatus(success ? "Loaded numbers successfully" : "No numbers added", success ? GREEN : ORANGE);
     }
 
-    if (success) {
+    if (success) 
+    {
         tree.Arrange();
     }
 }
@@ -154,7 +159,9 @@ void Application::HandleOperation() {
     try {
         int value = std::stoi(inputBox.text);
         if (selectedOption == "Add") {
-            if (!tree.Search(value)) {
+            if (!tree.SearchWithEffect(tree.root,value)) 
+            {
+                tree.algorithmSteps.clear();
                 tree.Add(value);
                 ShowStatus("Added number " + std::to_string(value), GREEN);
             }
@@ -163,7 +170,8 @@ void Application::HandleOperation() {
             }
         }
         else if (selectedOption == "Del") {
-            if (tree.Search(value)) {
+            if (tree.SearchWithEffect(tree.root, value)) 
+            {
                 tree.Delete(value);
                 ShowStatus("Deleted number " + std::to_string(value), GREEN);
             }
@@ -171,9 +179,14 @@ void Application::HandleOperation() {
                 ShowStatus("Number not found", ORANGE);
             }
         }
-        else if (selectedOption == "Search") {
-            ShowStatus(tree.Search(value) ? "Number " + std::to_string(value)+" found" : "Number "+ std::to_string(value)+" not found", tree.Search(value) ? GREEN : ORANGE);
+        else if (selectedOption == "Search")
+        {
+            bool found = tree.SearchWithEffect(tree.root, value);
+            ShowStatus(found ? "Number " + std::to_string(value) + " found"
+                : "Number " + std::to_string(value) + " not found",
+                found ? GREEN : ORANGE);
         }
+
     }
     catch (...) {
         ShowStatus("Invalid input!", RED);
@@ -194,7 +207,11 @@ void Application::Draw()
     startButton.Draw();
     createMenu.Draw();
     initMenu.Draw();
-
+    // Vẽ khu vực hiển thị thuật toán
+    DrawRectangle(0, h * 0.5f, leftWidth, h * 0.5f, ColorAlpha(RAYWHITE, 0.9f));
+    DrawRectangleLines(0, h * 0.5f, leftWidth, h * 0.5f, DARKBLUE);
+    DrawLine(0, h * 0.5f, leftWidth, h * 0.5f, DARKBLUE);
+    DrawText("Algorithm Steps:", 20, h * 0.5f + 20, 20, DARKBLUE);
     // Vẽ input box nếu cần nhập dữ liệu
     if (selectedOption == "Add" || selectedOption == "Del" || selectedOption == "Search" ||
         selectedInitOption == "Input" || selectedInitOption == "File")
@@ -219,11 +236,14 @@ void Application::Draw()
         DrawText("Input number:", inputBox.bounds.x, inputBox.bounds.y - 30, 20, DARKBLUE);
 
     // Vẽ cây AVL ở bên phải màn hình
-    tree.Draw();
+    tree.Draw(tree.root);
+    int stepY = h * 0.5f + 50;
+    for (const std::string& step : tree.algorithmSteps) 
+    {
+        DrawText(step.c_str(), 20, stepY, 18, BLACK);
+        stepY += 25;
+    }
 
-    // Vẽ khu vực hiển thị thuật toán
-    DrawRectangle(0, h * 0.5f, leftWidth, h * 0.5f, ColorAlpha(RAYWHITE, 0.9f));
-    DrawRectangleLines(0, h * 0.5f, leftWidth, h * 0.5f, DARKBLUE);
-    DrawLine(0, h * 0.5f, leftWidth, h * 0.5f, DARKBLUE);
-    DrawText("Algorithm Steps:", 20, h * 0.5f + 20, 20, DARKBLUE);
+
+   
 }

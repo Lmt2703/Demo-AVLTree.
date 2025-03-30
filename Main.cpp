@@ -11,10 +11,11 @@ int main()
 
     Application app(screenWidth, screenHeight);
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose()) 
+    {
         app.Update();
-
         BeginDrawing();
+        
         app.Draw();
         EndDrawing();
     }

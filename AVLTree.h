@@ -1,13 +1,18 @@
-#pragma once
+﻿#pragma once
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
 #include "Node.h"
 #include <algorithm>
-
+#include<vector>
+#include<queue>
 class AVLTree {
 public:
     Node* root;
+    Node* highlight;
+    bool isInitializing;
+    std::vector<std::string> algorithmSteps;
+
     int screenWidth, screenHeight;
 
     AVLTree(int width, int height);
@@ -15,7 +20,6 @@ public:
 
     int Height(Node* node);
     int GetBalance(Node* node);
-
     Node* RotateRight(Node* y);
     Node* RotateLeft(Node* x);
 
@@ -26,14 +30,10 @@ public:
     void Delete(int key);
 
     Node* FindMin(Node* node);
-
-    Node* Search(Node* node, int key);
-    bool Search(int key);
-
+    bool SearchWithEffect(Node* node, int key);
     void Arrange();
-    void DrawTree(Node* node);
-    void Draw();
-
+    void DrawTree(Node* node, Node* highlightNode);
+    void Draw(Node* root);
     void ClearTree(Node* node);
     void Clear();
 };

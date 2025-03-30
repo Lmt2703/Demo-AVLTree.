@@ -12,11 +12,10 @@ public:
     Node* left;
     Node* right;
     Vector2 position;
-
     Node(int key);
 
     int GetBalanceFactor();
-    void DrawNode();
+    void DrawNode(Color color = SKYBLUE);
 };
 
 // Hàm hỗ trợ điều chỉnh vị trí node trên màn hình

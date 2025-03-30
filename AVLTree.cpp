@@ -1,10 +1,12 @@
-#include "AVLTree.h"
+﻿#include "AVLTree.h"
 
-AVLTree::AVLTree(int width, int height) : root(nullptr), screenWidth(width), screenHeight(height) {}
+AVLTree::AVLTree(int width, int height) : root(nullptr), screenWidth(width), screenHeight(height), highlight(NULL) {}
 
 AVLTree::~AVLTree() {
     Clear();
 }
+
+
 
 int AVLTree::Height(Node* node) {
     if (node == nullptr) return 0;
@@ -93,72 +95,137 @@ void AVLTree::Delete(int key) {
 }
 
 Node* AVLTree::Insert(Node* node, int key) {
-    if (node == nullptr) return new Node(key);
+    if (node == nullptr) {
+        if (!isInitializing) {
+            algorithmSteps.push_back("Create new node " + std::to_string(key));
+        }
+        Node* newNode = new Node(key);
+        if (!isInitializing) {
+            highlight = newNode;  // Đánh dấu node mới
+        }
+        return newNode;
+    }
 
-    if (key < node->key)
+    if (key < node->key) {
+        if (!isInitializing) {
+            algorithmSteps.push_back("Go left from " + std::to_string(node->key));
+        }
         node->left = Insert(node->left, key);
-    else if (key > node->key)
+    }
+    else if (key > node->key) {
+        if (!isInitializing) {
+            algorithmSteps.push_back("Go right from " + std::to_string(node->key));
+        }
         node->right = Insert(node->right, key);
-    else
+    }
+    else {
         return node;
+    }
 
+    // Cập nhật chiều cao
     node->height = 1 + std::max(Height(node->left), Height(node->right));
 
+    // Kiểm tra cân bằng
     int balance = GetBalance(node);
 
-    if (balance > 1 && key < node->left->key)
+    // Xử lý các trường hợp mất cân bằng
+    if (balance > 1 && key < node->left->key) {
+        if (!isInitializing) algorithmSteps.push_back("Right Rotation at " + std::to_string(node->key));
         return RotateRight(node);
-    if (balance < -1 && key > node->right->key)
+    }
+    if (balance < -1 && key > node->right->key) {
+        if (!isInitializing) algorithmSteps.push_back("Left Rotation at " + std::to_string(node->key));
         return RotateLeft(node);
+    }
     if (balance > 1 && key > node->left->key) {
+        if (!isInitializing) algorithmSteps.push_back("Left Rotation at " + std::to_string(node->left->key));
         node->left = RotateLeft(node->left);
+        if (!isInitializing) algorithmSteps.push_back("Right Rotation at " + std::to_string(node->key));
         return RotateRight(node);
     }
     if (balance < -1 && key < node->right->key) {
+        if (!isInitializing) algorithmSteps.push_back("Right Rotation at " + std::to_string(node->right->key));
         node->right = RotateRight(node->right);
+        if (!isInitializing) algorithmSteps.push_back("Left Rotation at " + std::to_string(node->key));
         return RotateLeft(node);
     }
 
     return node;
 }
 
-void AVLTree::Add(int key) {
+
+
+void AVLTree::Add(int key) 
+{
+    if (!isInitializing) 
+    {
+        algorithmSteps.push_back("Insert " + std::to_string(key));
+    }
     root = Insert(root, key);
     positionTree(root, screenWidth, screenHeight);
 }
 
-Node* AVLTree::Search(Node* node, int key) {
-    if (node == nullptr || node->key == key) return node;
-    if (key < node->key) return Search(node->left, key);
-    return Search(node->right, key);
+bool AVLTree::SearchWithEffect(Node* root, int key) {
+    highlight = root;
+    algorithmSteps.clear(); // Xóa các bước cũ
+
+    while (highlight != nullptr) {
+        // Ghi lại bước thuật toán
+        algorithmSteps.push_back("Checking node: " + std::to_string(highlight->key));
+
+        // Vẽ lại cây với node highlight
+        BeginDrawing();
+        Draw(root);
+        EndDrawing();
+
+        // Tạm dừng để tạo hiệu ứng highlight
+        WaitTime(0.5f);
+
+        if (key == highlight->key) {
+            algorithmSteps.push_back("Found " + std::to_string(key) + " at this node.");
+            return true;  // Tìm thấy node
+        }
+        else if (key < highlight->key) {
+            algorithmSteps.push_back("  "+std::to_string(key) + " < " + std::to_string(highlight->key) + " so node = node->left ");
+            highlight = highlight->left;
+        }
+        else {
+            algorithmSteps.push_back("  "+std::to_string(key) + " > " + std::to_string(highlight->key) + " so node = node->left ");
+            highlight = highlight->right;
+        }
+    }
+
+    algorithmSteps.push_back("Key " + std::to_string(key) + " not found in tree.");
+    return false; // Không tìm thấy node
 }
 
-bool AVLTree::Search(int key) {
-    return Search(root, key) != nullptr;
-}
-
-void AVLTree::Arrange() {
+void AVLTree::Arrange() 
+{
     positionTree(root, screenWidth, screenHeight);
 }
 
-void AVLTree::DrawTree(Node* node) {
+void AVLTree::DrawTree(Node* node, Node* highlightNode) {
     if (node == nullptr) return;
-    if (node->position.x >= 0 && node->position.x <= screenWidth &&
-        node->position.y >= 100 && node->position.y <= screenHeight) {
-        if (node->left) {
-            DrawLine(node->position.x, node->position.y, node->left->position.x, node->left->position.y, DARKGRAY);
-        }
-        if (node->right) {
-            DrawLine(node->position.x, node->position.y, node->right->position.x, node->right->position.y, DARKGRAY);
-        }
-        node->DrawNode();
+    if (node->left) {
+        DrawLine(node->position.x, node->position.y, node->left->position.x, node->left->position.y, DARKGRAY);
     }
-    DrawTree(node->left);
-    DrawTree(node->right);
+    if (node->right) {
+        DrawLine(node->position.x, node->position.y, node->right->position.x, node->right->position.y, DARKGRAY);
+    }
+
+    // Nếu là node đang highlight, đổi màu vàng, ngược lại thì màu mặc định
+    Color nodeColor = (node == highlightNode) ? YELLOW : SKYBLUE;
+    node->DrawNode(nodeColor);
+    // Đệ quy vẽ cây
+    DrawTree(node->left, highlightNode);
+    DrawTree(node->right, highlightNode);
 }
 
-void AVLTree::Draw() {
-    DrawTree(root);
+
+void AVLTree::Draw(Node* root)
+{
+    Node* highlightNode = highlight;
+    DrawTree(root, highlightNode);
 }
 
 void AVLTree::ClearTree(Node* node) {
