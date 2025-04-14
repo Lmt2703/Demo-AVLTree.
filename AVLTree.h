@@ -26,7 +26,7 @@ public:
     Node* Insert(Node* node, int key);
     void Add(int key);
 
-    Node* Delete(Node* node, int key);
+    Node* Delete(Node* node, int key, bool skipDeleteStep);
     void Delete(int key);
 
     Node* FindMin(Node* node);

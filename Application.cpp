@@ -48,7 +48,8 @@ void Application::Update() {
     if (animationProgress > 1.0f)
         animationProgress = 1.0f;
 
-    if (statusTimer > 0) {
+    if (statusTimer > 0)
+    {
         statusTimer -= GetFrameTime();
     }
 
@@ -104,14 +105,14 @@ void Application::Update() {
     inputBox.Update();
 }
 
-
 void Application::HandleInit() {
     tree.Clear();
     bool success = false;
 
     if (selectedInitOption == "Random") {
         srand(time(0));
-        for (int i = 0; i < 7; i++) {
+		int numElements = stoi(inputBox.text);
+        for (int i = 0; i < numElements; i++) {
             tree.Add(rand() % 100);
         }
         success = true;
@@ -172,6 +173,7 @@ void Application::HandleOperation() {
         else if (selectedOption == "Del") {
             if (tree.SearchWithEffect(tree.root, value)) 
             {
+                tree.algorithmSteps.clear();
                 tree.Delete(value);
                 ShowStatus("Deleted number " + std::to_string(value), GREEN);
             }
@@ -212,12 +214,8 @@ void Application::Draw()
     DrawRectangleLines(0, h * 0.5f, leftWidth, h * 0.5f, DARKBLUE);
     DrawLine(0, h * 0.5f, leftWidth, h * 0.5f, DARKBLUE);
     DrawText("Algorithm Steps:", 20, h * 0.5f + 20, 20, DARKBLUE);
-    // Vẽ input box nếu cần nhập dữ liệu
-    if (selectedOption == "Add" || selectedOption == "Del" || selectedOption == "Search" ||
-        selectedInitOption == "Input" || selectedInitOption == "File")
-    {
-        inputBox.Draw();
-    }
+  
+     inputBox.Draw();
 
     // Hiển thị thông báo trạng thái ngay trên input box
     if (statusTimer > 0)
@@ -234,16 +232,14 @@ void Application::Draw()
         DrawText("Input sequence:", inputBox.bounds.x, inputBox.bounds.y - 30, 20, DARKBLUE);
     else if (selectedOption == "Add" || selectedOption == "Del" || selectedOption == "Search")
         DrawText("Input number:", inputBox.bounds.x, inputBox.bounds.y - 30, 20, DARKBLUE);
-
+	else if (selectedInitOption == "Random")
+		DrawText("Input the number of the elements: ", inputBox.bounds.x, inputBox.bounds.y - 30, 20, DARKBLUE);
     // Vẽ cây AVL ở bên phải màn hình
-    tree.Draw(tree.root);
+	tree.Draw(tree.root);
     int stepY = h * 0.5f + 50;
     for (const std::string& step : tree.algorithmSteps) 
     {
-        DrawText(step.c_str(), 20, stepY, 18, BLACK);
+        DrawText(step.c_str(), 20, stepY, 25, BLACK);
         stepY += 25;
-    }
-
-
-   
+    }  
 }

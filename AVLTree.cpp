@@ -6,8 +6,6 @@ AVLTree::~AVLTree() {
     Clear();
 }
 
-
-
 int AVLTree::Height(Node* node) {
     if (node == nullptr) return 0;
     return node->height;
@@ -49,24 +47,44 @@ Node* AVLTree::FindMin(Node* node) {
     return node;
 }
 
-Node* AVLTree::Delete(Node* node, int key) {
+Node* AVLTree::Delete(Node* node, int key, bool skipDeleteStep = false) {
     if (node == nullptr) return node;
 
     if (key < node->key) {
-        node->left = Delete(node->left, key);
+        if (!isInitializing) {
+            algorithmSteps.push_back("Go left from " + std::to_string(node->key));
+        }
+        node->left = Delete(node->left, key,false);
     }
     else if (key > node->key) {
-        node->right = Delete(node->right, key);
+        if (!isInitializing) {
+            algorithmSteps.push_back("Go right from " + std::to_string(node->key));
+        }
+        node->right = Delete(node->right, key,false);
     }
-    else {
+    else
+    {
+        if (!isInitializing && !skipDeleteStep)
+        {
+            algorithmSteps.push_back("Find node " + std::to_string(node->key));
+            algorithmSteps.push_back("Delete node " + std::to_string(node->key));
+        }
+           
+
         if (node->left == nullptr || node->right == nullptr) {
-            Node* temp = node->left ? node->left : node->right;
+            Node* temp = (node->left) ? node->left : node->right;
             delete node;
             return temp;
         }
-        Node* temp = FindMin(node->right);
-        node->key = temp->key;
-        node->right = Delete(node->right, temp->key);
+        else
+        {
+            // Tìm node min của cây con phải
+            Node* temp = FindMin(node->right);
+            node->key = temp->key;
+
+            // Xóa node min nhưng **bỏ qua ghi thuật toán**
+            node->right = Delete(node->right, temp->key, true);
+        }
     }
 
     if (node == nullptr) return node;
@@ -74,16 +92,25 @@ Node* AVLTree::Delete(Node* node, int key) {
     node->height = 1 + std::max(Height(node->left), Height(node->right));
     int balance = GetBalance(node);
 
-    if (balance > 1 && GetBalance(node->left) >= 0)
-        return RotateRight(node);
-    if (balance > 1 && GetBalance(node->left) < 0) {
-        node->left = RotateLeft(node->left);
+    // Kiểm tra và cân bằng lại cây
+    if (balance > 1 && GetBalance(node->left) >= 0) { // Left-Left Case
+        if (!isInitializing) algorithmSteps.push_back("Right Rotation at " + std::to_string(node->key));
         return RotateRight(node);
     }
-    if (balance < -1 && GetBalance(node->right) <= 0)
+    if (balance > 1 && GetBalance(node->left) < 0) { // Left-Right Case
+        if (!isInitializing) algorithmSteps.push_back("Left Rotation at " + std::to_string(node->left->key));
+        node->left = RotateLeft(node->left);
+        if (!isInitializing) algorithmSteps.push_back("Right Rotation at " + std::to_string(node->key));
+        return RotateRight(node);
+    }
+    if (balance < -1 && GetBalance(node->right) <= 0) { // Right-Right Case
+        if (!isInitializing) algorithmSteps.push_back("Left Rotation at " + std::to_string(node->key));
         return RotateLeft(node);
-    if (balance < -1 && GetBalance(node->right) > 0) {
+    }
+    if (balance < -1 && GetBalance(node->right) > 0) { // Right-Left Case
+        if (!isInitializing) algorithmSteps.push_back("Right Rotation at " + std::to_string(node->right->key));
         node->right = RotateRight(node->right);
+        if (!isInitializing) algorithmSteps.push_back("Left Rotation at " + std::to_string(node->key));
         return RotateLeft(node);
     }
 
@@ -91,7 +118,11 @@ Node* AVLTree::Delete(Node* node, int key) {
 }
 
 void AVLTree::Delete(int key) {
+    if (!isInitializing) {
+        algorithmSteps.push_back("Step by step to delete " + std::to_string(key)+": ");
+    }
     root = Delete(root, key);
+    positionTree(root, screenWidth, screenHeight);
 }
 
 Node* AVLTree::Insert(Node* node, int key) {
@@ -153,13 +184,11 @@ Node* AVLTree::Insert(Node* node, int key) {
     return node;
 }
 
-
-
 void AVLTree::Add(int key) 
 {
     if (!isInitializing) 
     {
-        algorithmSteps.push_back("Insert " + std::to_string(key));
+        algorithmSteps.push_back("Step by step to insert " + std::to_string(key)+": ");
     }
     root = Insert(root, key);
     positionTree(root, screenWidth, screenHeight);
@@ -168,7 +197,7 @@ void AVLTree::Add(int key)
 bool AVLTree::SearchWithEffect(Node* root, int key) {
     highlight = root;
     algorithmSteps.clear(); // Xóa các bước cũ
-
+    algorithmSteps.push_back("Step by step to find " + std::to_string(key) + ": ");
     while (highlight != nullptr) {
         // Ghi lại bước thuật toán
         algorithmSteps.push_back("Checking node: " + std::to_string(highlight->key));
@@ -206,21 +235,20 @@ void AVLTree::Arrange()
 
 void AVLTree::DrawTree(Node* node, Node* highlightNode) {
     if (node == nullptr) return;
-    if (node->left) {
+    
+    if (node->left)
+    {
         DrawLine(node->position.x, node->position.y, node->left->position.x, node->left->position.y, DARKGRAY);
     }
-    if (node->right) {
+    if (node->right)
+    {
         DrawLine(node->position.x, node->position.y, node->right->position.x, node->right->position.y, DARKGRAY);
     }
-
-    // Nếu là node đang highlight, đổi màu vàng, ngược lại thì màu mặc định
-    Color nodeColor = (node == highlightNode) ? YELLOW : SKYBLUE;
-    node->DrawNode(nodeColor);
-    // Đệ quy vẽ cây
+     Color nodeColor = (node == highlightNode) ? YELLOW : SKYBLUE;
+     node->DrawNode(nodeColor);
     DrawTree(node->left, highlightNode);
     DrawTree(node->right, highlightNode);
 }
-
 
 void AVLTree::Draw(Node* root)
 {

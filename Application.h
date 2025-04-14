@@ -10,7 +10,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-
+#include"Animation.h"
 class Application {
 public:
     int w, h;

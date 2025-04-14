@@ -15,7 +15,6 @@ int main()
     {
         app.Update();
         BeginDrawing();
-        
         app.Draw();
         EndDrawing();
     }

@@ -12,6 +12,7 @@ public:
     Node* left;
     Node* right;
     Vector2 position;
+    Vector2 targetPosition;
     Node(int key);
 
     int GetBalanceFactor();

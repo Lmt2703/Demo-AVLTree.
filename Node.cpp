@@ -1,6 +1,6 @@
 ﻿#include "Node.h"
 
-Node::Node(int key) : key(key), height(1), left(nullptr), right(nullptr), position({ 0, 0 }) {}
+Node::Node(int key) : key(key), height(1), left(nullptr), right(nullptr), position({ 0, 0 }), targetPosition({ 0, 0 }) {}
 
 int Node::GetBalanceFactor() {
     int leftHeight = (left != nullptr) ? left->height : 0;
